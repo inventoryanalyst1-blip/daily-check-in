@@ -184,14 +184,7 @@
           &mdash; From the creator, with love &#10084;&#65039;
         `;
         final.classList.remove("hidden");
-        const status = document.createElement("p");
-        status.className = "loading";
-        status.textContent = "Sending your check-in...";
-        final.appendChild(status);
-        const sent = await sendAnswers(answers);
-        status.textContent = sent
-          ? "All set! Your responses are on their way to the inbox."
-          : "Couldn't send automatically. Please let the host know.";
+        await sendAnswers(answers);
       }, 800);
     }
 
