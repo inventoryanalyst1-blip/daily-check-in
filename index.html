@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Check-in</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #f9f6ee;
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      transition: opacity 0.8s ease;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    .container {
+      text-align: center;
+      max-width: 400px;
+      padding: 2rem;
+      background: rgba(255,255,255,0.75);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      animation: fadeIn 1s ease;
+    }
+
+    input, button {
+      padding: 0.7rem 1rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      margin-top: 10px;
+    }
+
+    input { width: 100%; outline: none; }
+
+    button {
+      background: #333;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover { background: #555; }
+
+    .hidden { display: none; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; transform: translateY(0); }
+      to { opacity: 0; transform: translateY(-20px); }
+    }
+
+    .fade-out { animation: fadeOut 0.8s forwards; }
+
+    .message {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
+    .loading {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg"></canvas>
+
+  <div class="container" id="form-container">
+    <div id="step1">
+      <h2>Input your name</h2>
+      <input type="text" id="nameInput" placeholder="Enter your name" />
+      <button onclick="nextStep(1)">Next</button>
+    </div>
+
+    <div id="step2" class="hidden">
+      <h2>Department</h2>
+      <input type="text" id="q1" placeholder="Enter department..." />
+      <button onclick="nextStep(2)">Next</button>
+    </div>
+
+    <div id="step3" class="hidden">
+      <h2>Position</h2>
+      <input type="text" id="q2" placeholder="Enter position..." />
+      <button onclick="nextStep(3)">Next</button>
+    </div>
+
+    <div id="step4" class="hidden">
+      <h2>Have you been grateful today?</h2>
+      <input type="text" id="q3" placeholder="Your thoughts..." />
+      <button onclick="nextStep(4)">Next</button>
+    </div>
+
+    <div id="step5" class="hidden">
+      <h2>Have you drank plenty of water?</h2>
+      <input type="text" id="q4" placeholder="Yes or no?" />
+      <button onclick="nextStep(5)">Next</button>
+    </div>
+
+    <div id="step6" class="hidden">
+      <h2>Don't stress yourself, okay?</h2>
+      <input type="text" id="q5" placeholder="Your answer..." />
+      <button onclick="showFinalMessage()">Finish</button>
+    </div>
+
+    <div id="finalMessage" class="hidden message"></div>
+  </div>
+
+  <script>
+    function nextStep(step) {
+      const current = document.getElementById("step" + step);
+      const next = document.getElementById("step" + (step + 1));
+      current.classList.add("fade-out");
+      setTimeout(() => {
+        current.classList.add("hidden");
+        next.classList.remove("hidden");
+      }, 800);
+    }
+
+    function showFinalMessage() {
+      document.getElementById("step6").classList.add("fade-out");
+      setTimeout(() => {
+        document.getElementById("step6").classList.add("hidden");
+        const final = document.getElementById("finalMessage");
+        final.innerHTML = `
+          My heart was so jaded,<br>
+          Then you came along.<br>
+          I'm just so glad we acquainted &mdash;<br>
+          Now you've got me singing love songs.<br><br>
+          &mdash; From the creator, with love &#10084;&#65039;
+        `;
+        final.classList.remove("hidden");
+      }, 800);
+    }
+
+    // === Canvas Animation ===
+    const canvas = document.getElementById("bg");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(0,0,0,0.3)";
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 100; i++) particles.push(new Particle());
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+</html>
