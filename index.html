@@ -85,47 +85,81 @@
 <body>
   <canvas id="bg"></canvas>
 
-  <div class="container" id="form-container">
+  <form class="container" id="checkinForm">
     <div id="step1">
       <h2>Input your name</h2>
-      <input type="text" id="nameInput" placeholder="Enter your name" />
-      <button onclick="nextStep(1)">Next</button>
+      <input type="text" id="nameInput" name="name" placeholder="Enter your name" />
+      <button type="button" onclick="nextStep(1)">Next</button>
     </div>
 
     <div id="step2" class="hidden">
       <h2>Department</h2>
-      <input type="text" id="q1" placeholder="Enter department..." />
-      <button onclick="nextStep(2)">Next</button>
+      <input type="text" id="q1" name="department" placeholder="Enter department..." />
+      <button type="button" onclick="nextStep(2)">Next</button>
     </div>
 
     <div id="step3" class="hidden">
       <h2>Position</h2>
-      <input type="text" id="q2" placeholder="Enter position..." />
-      <button onclick="nextStep(3)">Next</button>
+      <input type="text" id="q2" name="position" placeholder="Enter position..." />
+      <button type="button" onclick="nextStep(3)">Next</button>
     </div>
 
     <div id="step4" class="hidden">
       <h2>Have you been grateful today?</h2>
-      <input type="text" id="q3" placeholder="Your thoughts..." />
-      <button onclick="nextStep(4)">Next</button>
+      <input type="text" id="q3" name="gratitude" placeholder="Your thoughts..." />
+      <button type="button" onclick="nextStep(4)">Next</button>
     </div>
 
     <div id="step5" class="hidden">
       <h2>Have you drank plenty of water?</h2>
-      <input type="text" id="q4" placeholder="Yes or no?" />
-      <button onclick="nextStep(5)">Next</button>
+      <input type="text" id="q4" name="hydration" placeholder="Yes or no?" />
+      <button type="button" onclick="nextStep(5)">Next</button>
     </div>
 
     <div id="step6" class="hidden">
       <h2>Don't stress yourself, okay?</h2>
-      <input type="text" id="q5" placeholder="Your answer..." />
-      <button onclick="showFinalMessage()">Finish</button>
+      <input type="text" id="q5" name="reminder" placeholder="Your answer..." />
+      <button type="button" onclick="showFinalMessage()">Finish</button>
     </div>
 
     <div id="finalMessage" class="hidden message"></div>
-  </div>
+  </form>
 
   <script>
+    const FORM_ENDPOINT = "https://formspree.io/f/xnnodryd";
+
+    function collectAnswers() {
+      return {
+        name: document.getElementById("nameInput").value.trim(),
+        department: document.getElementById("q1").value.trim(),
+        position: document.getElementById("q2").value.trim(),
+        gratitude: document.getElementById("q3").value.trim(),
+        hydration: document.getElementById("q4").value.trim(),
+        reminder: document.getElementById("q5").value.trim()
+      };
+    }
+
+    async function sendAnswers(answers) {
+      if (!FORM_ENDPOINT) {
+        return false;
+      }
+      const formData = new FormData();
+      Object.entries(answers).forEach(([key, value]) => formData.append(key, value));
+      formData.append("_subject", "New daily check-in");
+
+      try {
+        const response = await fetch(FORM_ENDPOINT, {
+          method: "POST",
+          headers: { Accept: "application/json" },
+          body: formData
+        });
+        return response.ok;
+      } catch (error) {
+        console.error("Failed to send answers", error);
+        return false;
+      }
+    }
+
     function nextStep(step) {
       const current = document.getElementById("step" + step);
       const next = document.getElementById("step" + (step + 1));
@@ -136,9 +170,10 @@
       }, 800);
     }
 
-    function showFinalMessage() {
+    async function showFinalMessage() {
       document.getElementById("step6").classList.add("fade-out");
-      setTimeout(() => {
+      const answers = collectAnswers();
+      setTimeout(async () => {
         document.getElementById("step6").classList.add("hidden");
         const final = document.getElementById("finalMessage");
         final.innerHTML = `
@@ -149,6 +184,14 @@
           &mdash; From the creator, with love &#10084;&#65039;
         `;
         final.classList.remove("hidden");
+        const status = document.createElement("p");
+        status.className = "loading";
+        status.textContent = "Sending your check-in...";
+        final.appendChild(status);
+        const sent = await sendAnswers(answers);
+        status.textContent = sent
+          ? "All set! Your responses are on their way to the inbox."
+          : "Couldn't send automatically. Please let the host know.";
       }, 800);
     }
 
